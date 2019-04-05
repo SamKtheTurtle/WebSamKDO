@@ -3,32 +3,43 @@ const router = express.Router();
 const mongoose = require('mongoose');
 
 
-// Load Profile Model
+// Load artist Model
 const Artist = require('../../models/Artist.model');
 // Load User Model
 const Album = require('../../models/Album.model');
 
-// @route   GET api/artist/test
-// @desc    Tests artist route
-router.get('/test', (req, res) => res.json({ msg: 'Artist Works' }));
-
 // @route   GET api/artist
 // @desc    Get current artist based on ArtistId
 
-router.get(
-  '/',
-  Artist.findOne= (req, res) => {
-      Artist.findById(req.params.ArtistId)
-      .then(artist => {
-        if (!artist) {
-          errors.noartist = 'There is no artist for this id';
+/*
+router.get('/:name', (req, res) => {
+  const errors = {};
+  var name = request.params.name;
+  Artist.findOne({'firstName' : name})
+    .then(artists => {
+      if (!artists) {
+        errors.noartist = 'There are no artists';
+        return res.status(404).json(errors);
+      }
+      res.json(artists);
+    })
+    .catch(err => res.status(404).json({ artist: 'There are no artists' }));
+});*/
+
+
+  router.get('/all', (req, res) => {
+    const errors = {};
+  
+    Artist.find()
+      .then(artists => {
+        if (!artists) {
+          errors.noartist = 'There are no artists';
           return res.status(404).json(errors);
         }
-        res.json(artist);
+        res.json(artists);
       })
-      .catch(err => res.status(404).json(err));
-  }
-);
+      .catch(err => res.status(404).json({ artist: 'There are no artists' }));
+  });
 
 // Create and Save a new Artist
 router.put('/db_kdo/artists',(req, res) => {
@@ -59,75 +70,75 @@ router.put('/db_kdo/artists',(req, res) => {
 
 
 /*
-// @route   GET api/profile/all
-// @desc    Get all profiles
+// @route   GET api/artist/all
+// @desc    Get all artists
 // @access  Public
 router.get('/all', (req, res) => {
   const errors = {};
 
-  Profile.find()
+  artist.find()
     .populate('user', ['name', 'avatar'])
-    .then(profiles => {
-      if (!profiles) {
-        errors.noprofile = 'There are no profiles';
+    .then(artists => {
+      if (!artists) {
+        errors.noartist = 'There are no artists';
         return res.status(404).json(errors);
       }
 
-      res.json(profiles);
+      res.json(artists);
     })
-    .catch(err => res.status(404).json({ profile: 'There are no profiles' }));
+    .catch(err => res.status(404).json({ artist: 'There are no artists' }));
 });
 
-// @route   GET api/profile/handle/:handle
-// @desc    Get profile by handle
+// @route   GET api/artist/handle/:handle
+// @desc    Get artist by handle
 // @access  Public
 
 router.get('/handle/:handle', (req, res) => {
   const errors = {};
 
-  Profile.findOne({ handle: req.params.handle })
+  artist.findOne({ handle: req.params.handle })
     .populate('user', ['name', 'avatar'])
-    .then(profile => {
-      if (!profile) {
-        errors.noprofile = 'There is no profile for this user';
+    .then(artist => {
+      if (!artist) {
+        errors.noartist = 'There is no artist for this user';
         res.status(404).json(errors);
       }
 
-      res.json(profile);
+      res.json(artist);
     })
     .catch(err => res.status(404).json(err));
 });
 
-// @route   GET api/profile/user/:user_id
-// @desc    Get profile by user ID
+// @route   GET api/artist/user/:user_id
+// @desc    Get artist by user ID
 // @access  Public
 
 router.get('/user/:user_id', (req, res) => {
   const errors = {};
 
-  Profile.findOne({ user: req.params.user_id })
+  artist.findOne({ user: req.params.user_id })
     .populate('user', ['name', 'avatar'])
-    .then(profile => {
-      if (!profile) {
-        errors.noprofile = 'There is no profile for this user';
+    .then(artist => {
+      if (!artist) {
+        errors.noartist = 'There is no artist for this user';
         res.status(404).json(errors);
       }
 
-      res.json(profile);
+      res.json(artist);
     })
     .catch(err =>
-      res.status(404).json({ profile: 'There is no profile for this user' })
+      res.status(404).json({ artist: 'There is no artist for this user' })
     );
 });
 
-// @route   POST api/profile
-// @desc    Create or edit user profile
+// @route   POST api/artist
+// @desc    Create or edit user artist
 // @access  Private
 router.post(
   '/',
   passport.authenticate('jwt', { session: false }),
   (req, res) => {
-    const { errors, isValid } = validateProfileInput(req.body);
+    const { errors, isValid } = validateartistInput(req.body);
 
     // Check Validation
     if (!isValid) {
@@ -136,57 +147,57 @@ router.post(
     }
 
     // Get fields
-    const profileFields = {};
-    profileFields.user = req.user.id;
-    if (req.body.handle) profileFields.handle = req.body.handle;
-    if (req.body.company) profileFields.company = req.body.company;
-    if (req.body.website) profileFields.website = req.body.website;
-    if (req.body.location) profileFields.location = req.body.location;
-    if (req.body.bio) profileFields.bio = req.body.bio;
-    if (req.body.status) profileFields.status = req.body.status;
+    const artistFields = {};
+    artistFields.user = req.user.id;
+    if (req.body.handle) artistFields.handle = req.body.handle;
+    if (req.body.company) artistFields.company = req.body.company;
+    if (req.body.website) artistFields.website = req.body.website;
+    if (req.body.location) artistFields.location = req.body.location;
+    if (req.body.bio) artistFields.bio = req.body.bio;
+    if (req.body.status) artistFields.status = req.body.status;
     if (req.body.githubusername)
-      profileFields.githubusername = req.body.githubusername;
+      artistFields.githubusername = req.body.githubusername;
     // Skills - Spilt into array
     if (typeof req.body.skills !== 'undefined') {
-      profileFields.skills = req.body.skills.split(',');
+      artistFields.skills = req.body.skills.split(',');
     }
 
     // Social
-    profileFields.social = {};
-    if (req.body.youtube) profileFields.social.youtube = req.body.youtube;
-    if (req.body.twitter) profileFields.social.twitter = req.body.twitter;
-    if (req.body.facebook) profileFields.social.facebook = req.body.facebook;
-    if (req.body.linkedin) profileFields.social.linkedin = req.body.linkedin;
-    if (req.body.instagram) profileFields.social.instagram = req.body.instagram;
+    artistFields.social = {};
+    if (req.body.youtube) artistFields.social.youtube = req.body.youtube;
+    if (req.body.twitter) artistFields.social.twitter = req.body.twitter;
+    if (req.body.facebook) artistFields.social.facebook = req.body.facebook;
+    if (req.body.linkedin) artistFields.social.linkedin = req.body.linkedin;
+    if (req.body.instagram) artistFields.social.instagram = req.body.instagram;
 
-    Profile.findOne({ user: req.user.id }).then(profile => {
-      if (profile) {
+    artist.findOne({ user: req.user.id }).then(artist => {
+      if (artist) {
         // Update
-        Profile.findOneAndUpdate(
+        artist.findOneAndUpdate(
           { user: req.user.id },
-          { $set: profileFields },
+          { $set: artistFields },
           { new: true }
-        ).then(profile => res.json(profile));
+        ).then(artist => res.json(artist));
       } else {
         // Create
 
         // Check if handle exists
-        Profile.findOne({ handle: profileFields.handle }).then(profile => {
-          if (profile) {
+        artist.findOne({ handle: artistFields.handle }).then(artist => {
+          if (artist) {
             errors.handle = 'That handle already exists';
             res.status(400).json(errors);
           }
 
-          // Save Profile
-          new Profile(profileFields).save().then(profile => res.json(profile));
+          // Save artist
+          new artist(artistFields).save().then(artist => res.json(artist));
         });
       }
     });
   }
 );
 
-// @route   POST api/profile/experience
-// @desc    Add experience to profile
+// @route   POST api/artist/experience
+// @desc    Add experience to artist
 // @access  Private
 router.post(
   '/experience',
@@ -200,7 +211,7 @@ router.post(
       return res.status(400).json(errors);
     }
 
-    Profile.findOne({ user: req.user.id }).then(profile => {
+    artist.findOne({ user: req.user.id }).then(artist => {
       const newExp = {
         title: req.body.title,
         company: req.body.company,
@@ -212,15 +223,15 @@ router.post(
       };
 
       // Add to exp array
-      profile.experience.unshift(newExp);
+      artist.experience.unshift(newExp);
 
-      profile.save().then(profile => res.json(profile));
+      artist.save().then(artist => res.json(artist));
     });
   }
 );
 
-// @route   POST api/profile/education
-// @desc    Add education to profile
+// @route   POST api/artist/education
+// @desc    Add education to artist
 // @access  Private
 router.post(
   '/education',
@@ -234,7 +245,7 @@ router.post(
       return res.status(400).json(errors);
     }
 
-    Profile.findOne({ user: req.user.id }).then(profile => {
+    artist.findOne({ user: req.user.id }).then(artist => {
       const newEdu = {
         school: req.body.school,
         degree: req.body.degree,
@@ -246,69 +257,69 @@ router.post(
       };
 
       // Add to edu array
-      profile.education.unshift(newEdu);
+      artist.education.unshift(newEdu);
 
-      profile.save().then(profile => res.json(profile));
+      artist.save().then(artist => res.json(artist));
     });
   }
 );
 
-// @route   DELETE api/profile/experience/:exp_id
-// @desc    Delete experience from profile
+// @route   DELETE api/artist/experience/:exp_id
+// @desc    Delete experience from artist
 // @access  Private
 router.delete(
   '/experience/:exp_id',
   passport.authenticate('jwt', { session: false }),
   (req, res) => {
-    Profile.findOne({ user: req.user.id })
-      .then(profile => {
+    artist.findOne({ user: req.user.id })
+      .then(artist => {
         // Get remove index
-        const removeIndex = profile.experience
+        const removeIndex = artist.experience
           .map(item => item.id)
           .indexOf(req.params.exp_id);
 
         // Splice out of array
-        profile.experience.splice(removeIndex, 1);
+        artist.experience.splice(removeIndex, 1);
 
         // Save
-        profile.save().then(profile => res.json(profile));
+        artist.save().then(artist => res.json(artist));
       })
       .catch(err => res.status(404).json(err));
   }
 );
 
-// @route   DELETE api/profile/education/:edu_id
-// @desc    Delete education from profile
+// @route   DELETE api/artist/education/:edu_id
+// @desc    Delete education from artist
 // @access  Private
 router.delete(
   '/education/:edu_id',
   passport.authenticate('jwt', { session: false }),
   (req, res) => {
-    Profile.findOne({ user: req.user.id })
-      .then(profile => {
+    artist.findOne({ user: req.user.id })
+      .then(artist => {
         // Get remove index
-        const removeIndex = profile.education
+        const removeIndex = artist.education
           .map(item => item.id)
           .indexOf(req.params.edu_id);
 
         // Splice out of array
-        profile.education.splice(removeIndex, 1);
+        artist.education.splice(removeIndex, 1);
 
         // Save
-        profile.save().then(profile => res.json(profile));
+        artist.save().then(artist => res.json(artist));
       })
       .catch(err => res.status(404).json(err));
   }
 );
 
-// @route   DELETE api/profile
-// @desc    Delete user and profile
+// @route   DELETE api/artist
+// @desc    Delete user and artist
 // @access  Private
 router.delete(
   '/',
   passport.authenticate('jwt', { session: false }),
   (req, res) => {
-    Profile.findOneAndRemove({ user: req.user.id }).then(() => {
+    artist.findOneAndRemove({ user: req.user.id }).then(() => {
       User.findOneAndRemove({ _id: req.user.id }).then(() =>
         res.json({ success: true })
       );
